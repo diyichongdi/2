@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>
+<title>频道文案发布台</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f5f7;color:#1a1c1f;font:15px/1.9 -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 16px 90px}
+header{padding:26px 0 16px;border-bottom:1px solid #e4e6ea}
+h1{margin:0 0 6px;font-size:21px;font-weight:650;letter-spacing:.5px}
+.sub{margin:0;color:#6b7280;font-size:13.5px;line-height:1.7}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-size:12.5px;color:#6b7280;background:#fff;border:1px solid #e4e6ea;border-radius:999px;padding:4px 11px}
+.chip b{color:#1a1c1f}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:16px 0 4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;cursor:pointer;border:1px solid #e4e6ea;background:#fff;border-radius:10px;padding:9px 15px;font-size:13.5px;color:#6b7280;font-family:inherit;text-align:left;white-space:nowrap}
+.tab b{display:block;font-size:14.5px;color:#1a1c1f;margin-bottom:1px}
+.tab.on{border-color:#1d4ed8;background:#eef2ff}
+.tab.on b{color:#1d4ed8}
+.toolbar{position:sticky;top:0;z-index:9;background:rgba(244,245,247,.94);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #e4e6ea}
+.setinfo{font-size:13px;color:#6b7280;line-height:1.6}
+.setinfo b{color:#1a1c1f}
+.btn{font-family:inherit;font-size:13.5px;cursor:pointer;border:1px solid #1d4ed8;background:#1d4ed8;color:#fff;border-radius:9px;padding:9px 15px;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.card{background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:16px 18px 14px;margin-top:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.head{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.no{flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:#eef2ff;color:#1d4ed8;font-size:12.5px;font-weight:650;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.htxt{flex:1 1 auto;min-width:0}
+.title{font-size:15px;font-weight:640;line-height:1.5;word-break:break-word}
+.tagline{margin-top:3px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tag{font-size:11.5px;border:1px solid #e4e6ea;border-radius:5px;padding:1px 7px;color:#4b5563;background:#fafbfc}
+.tag.welcome{color:#0f766e;border-color:#cfe9e4;background:#f0faf8}
+.tag.faq{color:#a16207;border-color:#f0e3c2;background:#fdf9ee}
+.tag.index{color:#1d4ed8;border-color:#dbe4fb;background:#f3f6fe}
+.chars{font-size:11.5px;color:#6b7280}
+.copy{flex:0 0 auto;font-family:inherit;font-size:12.5px;cursor:pointer;border:1px solid #e4e6ea;background:#fff;color:#1a1c1f;border-radius:8px;padding:6px 12px}
+.copy:hover{border-color:#1d4ed8;color:#1d4ed8}
+.copy.done{border-color:#bbf7d0;background:#f0fdf4;color:#15803d}
+.body{white-space:pre-wrap;word-break:break-word;font-size:14.5px;line-height:1.95;color:#25282c;background:#fafbfc;border:1px solid #e4e6ea;border-left:3px solid #dfe3e8;border-radius:8px;padding:13px 15px;margin-top:10px}
+.card.done{background:#fcfefc;border-color:#d7edde}
+.note{font-size:13px;color:#6b7280;background:#fff;border:1px dashed #e4e6ea;border-radius:10px;padding:12px 15px;margin-top:14px;line-height:1.8}
+footer{margin-top:26px;padding-top:14px;border-top:1px solid #e4e6ea;font-size:12.5px;color:#6b7280;line-height:1.8}
+footer a{color:#1d4ed8;text-decoration:none}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,18px);background:#111827;color:#fff;font-size:13px;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:90vw}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media(max-width:520px){.wrap{padding:0 12px 80px}h1{font-size:19px}.card{padding:14px 14px 12px}.body{font-size:14px;padding:12px}.toolbar{flex-wrap:wrap}.toolbar .btn{width:100%}}
+</style>
+</head>
+<body>
+<div class='wrap'>
+<header>
+<h1>频道文案发布台</h1>
+<p class='sub'>5 套循环文案，逐条复制即发。装饰已预置在标题，链接独立成行，发布前无需再排版。</p>
+<div class='stats'>
+<div class='chip'>套数 <b id='cSets'>—</b></div>
+<div class='chip'>文案 <b id='cBlocks'>—</b> 条</div>
+<div class='chip'>总字数 <b id='cChars'>—</b></div>
+<div class='chip'>已复制 <b id='cDone'>0</b></div>
+</div>
+</header>
+<nav class='tabs' id='tabs'></nav>
+<div class='toolbar'>
+<div class='setinfo' id='setinfo'>正在读取仓库文案…</div>
+<button class='btn' id='copyAll'>复制本套全部</button>
+</div>
+<main id='list'></main>
+<footer>数据源：<a href='https://github.com/diyichongdi/2' target='_blank' rel='noopener'>github.com/diyichongdi/2</a> · 本页实时读取仓库内 5 个 txt，改文案只需更新仓库文件。<br>建议：置顶与 FAQ 设一次即可；工具条目每天 2~3 条错开发送；5 套轮换降低重复感。</footer>
+</div>
+<div id='toast'></div>
+<script>
+var FILES=[
+{file:'01-初见版.txt',id:1,name:'初见版',desc:'温柔引导型，适合频道起步期与新用户为主的阶段。'},
+{file:'02-口碑评测版.txt',id:2,name:'口碑评测版',desc:'客观评测口吻，强调实测结论与口碑，说服力强。'},
+{file:'03-场景化版.txt',id:3,name:'场景化版',desc:'按使用场景分类，帮用户对号入座。'},
+{file:'04-短文口语版.txt',id:4,name:'短文口语版',desc:'短句口语化，适合碎片化滚动推送与快节奏频道。'},
+{file:'05-体验细节版.txt',id:5,name:'体验细节版',desc:'深度阅读型，适合已关注的长期用户。'}
+];
+var KN={welcome:'欢迎',faq:'FAQ',index:'入口',tool:'工具'};
+var DECOR=['꒷⏝꒷꒦꒷⏝꒷','꒷₊˚⏝˚₊꒷','⌒✧⌒✧⌒','♡꒷⏝꒷♡','︵‿︵‿︵','︵❀︵❀︵','꧁༺','༻꧂','✧','⊹','꒷⏝꒷','**','✦','★','❖'];
+var CR=String.fromCharCode(13), LF=String.fromCharCode(10);
+var DASH=new Array(24).join('━');
+var LSK='tg_copy_done_v1';
+var DATA=[],cur=0,doneSet=[];
+try{var saved=JSON.parse(localStorage.getItem(LSK)||'[]');if(saved&&saved.length)doneSet=saved}catch(e){}
+function $(s){return document.querySelector(s)}
+function hasText(s){for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if((c>=19968&&c<=40959)||(c>=48&&c<=57)||(c>=65&&c<=90)||(c>=97&&c<=122))return true}return false}
+function hasDigit(s){for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c>=48&&c<=57)return true}return false}
+function isEqLine(s){var t=s.trim();if(!t)return false;for(var i=0;i<t.length;i++){if(t.charAt(i)!=='═')return false}return true}
+function cleanTitle(t){
+  t=t.trim();
+  while(t.charAt(0)==='⊹')t=t.substring(1).trim();
+  for(var i=0;i<DECOR.length;i++)t=t.split(DECOR[i]).join(' ');
+  while(t.indexOf('  ')>=0)t=t.split('  ').join(' ');
+  t=t.trim();
+  var edge='•·-—═━　 ';
+  while(t.length&&edge.indexOf(t.charAt(0))>=0)t=t.substring(1);
+  while(t.length&&edge.indexOf(t.charAt(t.length-1))>=0)t=t.substring(0,t.length-1);
+  return t.trim();
+}
+function kindOf(t){
+  var bar=t.indexOf('｜');
+  if(bar>=0&&hasDigit(t.substring(0,bar)))return 'tool';
+  if((t.indexOf('工具')>=0||t.indexOf('场景')>=0)&&hasDigit(t))return 'tool';
+  if(t.indexOf('欢迎')>=0||t.indexOf('项目资源整理')>=0||t.indexOf('项目简介')>=0||t.indexOf('这里是什么')>=0||t.indexOf('关于本频道')>=0)return 'welcome';
+  if(t.indexOf('FAQ')>=0||t.indexOf('常见问题')>=0||t.indexOf('答疑')>=0||t.indexOf('使用前必读')>=0||t.indexOf('几个小问题')>=0||t.indexOf('新人常问')>=0)return 'faq';
+  if(t.indexOf('精选')>=0||t.indexOf('常驻')>=0||t.indexOf('入口速览')>=0||t.indexOf('按需求挑')>=0)return 'index';
+  return 'tool';
+}
+function parseSet(raw,meta){
+  var blocks=[],pending='';
+  raw.split(DASH).forEach(function(blk){
+    var L=blk.split(CR).join('').split(LF);
+    L=L.filter(function(ln){
+      if(isEqLine(ln))return false;
+      var t=ln.trim();
+      if(t.indexOf('【第')===0&&t.indexOf(' 套')>0)return false;
+      if(t.indexOf('定位：')===0||t.indexOf('定位:')===0)return false;
+      if(t.indexOf('发布时删除')===0)return false;
+      return true;
+    });
+    while(L.length&&!L[0].trim())L.shift();
+    while(L.length&&!L[L.length-1].trim())L.pop();
+    if(!L.length)return;
+    var text=L.join(LF).trim();
+    var title='';
+    for(var i=0;i<L.length;i++){
+      var t=L[i].trim();
+      if(hasText(t)&&t.charAt(0)!=='【'){title=cleanTitle(L[i]);break}
+    }
+    if(text.length<40){pending=title||pending;return}
+    if(title.indexOf('使用说明')===0||title.indexOf('文件结束')===0)return;
+    var ft=pending||title;
+    blocks.push({title:ft||'（无标题）',kind:kindOf(ft),text:text,chars:text.length});
+    pending='';
+  });
+  return {id:meta.id,name:meta.name,desc:meta.desc,blocks:blocks};
+}
+function saveDone(){try{localStorage.setItem(LSK,JSON.stringify(doneSet))}catch(e){}}
+function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on')},1500)}
+function fallback(text){
+  try{
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.top='-9999px';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    return true;
+  }catch(e){return false}
+}
+function copyText(text,btn,key){
+  function finish(ok){
+    if(!ok){toast('复制失败，请手动选择文本');return}
+    if(btn){btn.classList.add('done');btn.textContent='已复制';setTimeout(function(){btn.classList.remove('done');btn.textContent='复制'},1500)}
+    if(key){if(doneSet.indexOf(key)<0)doneSet.push(key);saveDone();markDone(key);updateStats()}
+    toast('已复制到剪贴板');
+  }
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(text).then(function(){finish(true)}).catch(function(){finish(fallback(text))});
+  }else{finish(fallback(text))}
+}
+function markDone(k){
+  var cards=document.querySelectorAll('.card');
+  for(var i=0;i<cards.length;i++){if(cards[i].getAttribute('data-key')===k)cards[i].classList.add('done')}
+}
+function updateStats(){
+  var n=0,ch=0;
+  DATA.forEach(function(s){s.blocks.forEach(function(b){n++;ch+=b.chars})});
+  $('#cSets').textContent=DATA.length;
+  $('#cBlocks').textContent=n;
+  $('#cChars').textContent=ch.toLocaleString();
+  $('#cDone').textContent=doneSet.length;
+}
+function renderTabs(){
+  var nav=$('#tabs');nav.innerHTML='';
+  DATA.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='tab'+(i===cur?' on':'');
+    var c=0;s.blocks.forEach(function(x){if(x.kind==='tool')c++});
+    b.innerHTML='<b>第 '+s.id+' 套 · '+s.name+'</b>'+c+' 条工具';
+    b.addEventListener('click',function(){cur=i;renderTabs();renderList()});
+    nav.appendChild(b);
+  });
+}
+function renderList(){
+  var s=DATA[cur];
+  $('#setinfo').innerHTML='<b>第 '+s.id+' 套 · '+s.name+'</b> — '+s.desc+'<br>共 '+s.blocks.length+' 条，建议一天 2~3 条错开发送。';
+  var list=$('#list');list.innerHTML='';
+  s.blocks.forEach(function(blk,i){
+    var key=s.id+'-'+i;
+    var card=document.createElement('article');
+    card.className='card'+(doneSet.indexOf(key)>=0?' done':'');
+    card.setAttribute('data-key',key);
+    var head=document.createElement('div');head.className='head';
+    var no=document.createElement('div');no.className='no';no.textContent=i+1;
+    var htxt=document.createElement('div');htxt.className='htxt';
+    var title=document.createElement('div');title.className='title';title.textContent=blk.title;
+    var tl=document.createElement('div');tl.className='tagline';
+    var tag=document.createElement('span');tag.className='tag '+blk.kind;tag.textContent=KN[blk.kind]||'文案';
+    var ch=document.createElement('span');ch.className='chars';ch.textContent=blk.chars+' 字';
+    tl.appendChild(tag);tl.appendChild(ch);
+    htxt.appendChild(title);htxt.appendChild(tl);
+    var btn=document.createElement('button');btn.className='copy';btn.textContent='复制';
+    btn.addEventListener('click',function(){copyText(blk.text,btn,key)});
+    head.appendChild(no);head.appendChild(htxt);head.appendChild(btn);
+    var body=document.createElement('div');body.className='body';body.textContent=blk.text;
+    card.appendChild(head);card.appendChild(body);list.appendChild(card);
+  });
+}
+$('#copyAll').addEventListener('click',function(){
+  if(!DATA.length)return;
+  var s=DATA[cur];
+  copyText(s.blocks.map(function(b){return b.text}).join(LF+LF),null,null);
+  s.blocks.forEach(function(_,i){var k=s.id+'-'+i;if(doneSet.indexOf(k)<0)doneSet.push(k)});
+  saveDone();renderList();updateStats();
+});
+(function init(){
+  var done=0,out=[];
+  function check(){
+    if(done<FILES.length)return;
+    DATA=out.filter(function(x){return !!x});
+    if(!DATA.length){
+      $('#setinfo').textContent='文案读取失败';
+      $('#list').innerHTML='';
+      var nt=document.createElement('div');nt.className='note';
+      nt.textContent='当前页面读不到仓库里的 txt：请通过 GitHub Pages 地址访问（不要本地双击打开），并确认仓库根目录有 01~05 的 txt 文件。';
+      $('#list').appendChild(nt);
+      return;
+    }
+    updateStats();renderTabs();renderList();
+    doneSet.forEach(function(k){markDone(k)});
+  }
+  FILES.forEach(function(m,idx){
+    fetch('./'+encodeURIComponent(m.file),{cache:'no-store'}).then(function(r){
+      if(!r.ok)throw new Error(r.status);
+      return r.text();
+    }).then(function(t){out[idx]=parseSet(t,m)})
+      .catch(function(e){console.warn('读取失败',m.file,e);out[idx]=null})
+      .then(function(){done++;check()});
+  });
+})();
+</script>
+</body>
+</html>
