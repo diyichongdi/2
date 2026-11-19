@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>元素周期表 · 高中化学</title>
+<style>
+:root{
+  --cell: clamp(42px, min(4.5vw, 7.3vh), 104px);
+  --gap: clamp(3px, .42vw, 8px);
+  --ink: #e8ecf7;
+  --muted: #93a0bb;
+  --glass: rgba(14,18,30,.62);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  margin:0; background:#05060c; color:var(--ink);
+  font-family:"Segoe UI","SimSun-ExtB","Microsoft YaHei","PingFang SC","Hiragino Sans GB","Source Han Sans SC",sans-serif;
+  overflow:hidden; user-select:none;
+}
+/* ===== 动态背景 ===== */
+.bg{position:fixed;inset:0;z-index:-3;overflow:hidden;background:
+  radial-gradient(1200px 800px at 20% 10%, #0b1024 0%, #05060c 60%),
+  radial-gradient(1000px 700px at 85% 90%, #0a0f1e 0%, #05060c 55%);
+}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;mix-blend-mode:screen;will-change:transform;}
+.bg::after{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg at 50% 50%,rgba(99,102,241,.07),transparent 60deg,rgba(34,211,238,.06) 120deg,transparent 180deg,rgba(236,72,153,.06) 240deg,transparent 300deg,rgba(99,102,241,.07) 360deg);animation:spin 90s linear infinite;opacity:.9;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sheen{position:absolute;inset:0;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.05) 47%,transparent 60%);background-size:240% 240%;animation:sheen 16s ease-in-out infinite;}
+@keyframes sheen{0%,100%{background-position:110% 0}50%{background-position:-10% 0}}
+.b1{width:56vw;height:56vw;left:-12vw;top:-18vw;background:radial-gradient(circle at 40% 40%,#5b21b6,transparent 68%);animation:float1 46s ease-in-out infinite;}
+.b2{width:52vw;height:52vw;right:-16vw;top:8vh;background:radial-gradient(circle at 60% 40%,#0e7490,transparent 68%);animation:float2 54s ease-in-out infinite;}
+.b3{width:48vw;height:48vw;left:18vw;bottom:-24vw;background:radial-gradient(circle at 50% 50%,#9d174d,transparent 70%);animation:float3 62s ease-in-out infinite;}
+.b4{width:40vw;height:40vw;right:10vw;bottom:-10vw;background:radial-gradient(circle at 50% 50%,#1e3a8a,transparent 70%);animation:float1 70s ease-in-out infinite reverse;}
+@keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,4vh) scale(1.12)}}
+@keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5vw,6vh) scale(1.08)}}
+@keyframes float3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(4vw,-5vh) scale(1.15)}}
+.gridlines{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.16;
+  background-image:linear-gradient(rgba(120,160,255,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(120,160,255,.10) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse at 50% 45%,#000 0%,transparent 72%);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 45%,#000 0%,transparent 72%);
+  animation:gridpan 40s linear infinite;
+}
+@keyframes gridpan{from{background-position:0 0,0 0}to{background-position:0 44px,44px 0}}
+#stars{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.55;}
+.vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%);}
+
+/* ===== 顶栏 ===== */
+.wrap{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(12px,2.2vh,26px) clamp(10px,2vw,28px) 10px;}
+.head{width:min(96vw,1780px);display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:clamp(8px,1.4vh,18px);}
+.title{font-size:clamp(20px,2.5vw,34px);font-weight:800;letter-spacing:.06em;margin:0;
+  background:linear-gradient(100deg,#a5b4fc,#67e8f9 45%,#f0abfc 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(99,102,241,.35));
+}
+.sub{font-size:clamp(10px,1vw,13px);color:var(--muted);letter-spacing:.14em;margin-top:4px;}
+.legend{display:flex;gap:6px 12px;flex-wrap:wrap;justify-content:flex-end;max-width:62%;}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:clamp(9px,.82vw,12px);color:#c7d2ea;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:3px 9px;border-radius:999px;}
+.dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 10px currentColor;}
+.newtag{font-size:8px;padding:1px 4px;border-radius:4px;background:linear-gradient(90deg,#f472b6,#fb923c);color:#fff;margin-left:2px;letter-spacing:0;}
+
+/* ===== 周期表 ===== */
+.pt{display:grid;
+  grid-template-columns:repeat(18,var(--cell));
+  grid-template-rows:repeat(7,var(--cell)) 13px repeat(2,var(--cell));
+  gap:var(--gap);
+  justify-content:center;
+}
+.cell{
+  position:relative;border-radius:9px;border:1px solid rgba(255,255,255,.085);
+  background:linear-gradient(160deg,rgba(255,255,255,.045),rgba(255,255,255,.012) 55%,rgba(0,0,0,.18));
+  color:var(--ink);cursor:pointer;padding:4px 5px;text-align:center;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  transition:transform .22s cubic-bezier(.2,.7,.3,1),box-shadow .22s,border-color .22s,background .22s;
+  opacity:0;transform:translateY(14px) scale(.97);
+  animation:pop .5s cubic-bezier(.2,.7,.3,1) forwards;animation-delay:var(--d);
+  will-change:transform,opacity;
+}
+.cell::before{content:"";position:absolute;left:0;top:0;height:2px;width:100%;background:linear-gradient(90deg,transparent,var(--c),transparent);opacity:.55;}
+.cell::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--c) 16%,transparent),transparent 60%);opacity:.55;pointer-events:none;}
+@keyframes pop{to{opacity:1;transform:translateY(0) scale(1)}}
+.cell .num{position:absolute;top:4px;left:6px;font-size:clamp(7px,.62vw,11px);color:#8b98b6;}
+.cell .sym{position:relative;font-size:clamp(13px,1.42vw,27px);font-weight:800;line-height:1;letter-spacing:.02em;color:var(--c);text-shadow:0 0 14px color-mix(in srgb,var(--c) 55%,transparent);margin-top:2px;}
+.cell .cn{position:relative;font-size:clamp(8px,.72vw,12px);color:#b9c4dc;margin-top:2px;white-space:nowrap;}
+.cell .m{position:absolute;bottom:3px;right:6px;font-size:clamp(6px,.55vw,9px);color:#7f8bab;}
+.cell.small .sym{font-size:clamp(10px,1.05vw,19px);}
+.cell:hover{z-index:3;transform:translateY(-4px) scale(1.07);border-color:var(--c);
+  box-shadow:0 0 0 1px var(--c),0 10px 34px color-mix(in srgb,var(--c) 38%,transparent),inset 0 0 22px color-mix(in srgb,var(--c) 16%,transparent);}
+.cell.active{z-index:4;transform:translateY(-3px) scale(1.05);border-color:var(--c);
+  box-shadow:0 0 0 1.5px var(--c),0 0 34px color-mix(in srgb,var(--c) 55%,transparent);}
+.placeholder{
+  grid-column:3;border-radius:9px;border:1px dashed rgba(255,255,255,.16);
+  background:rgba(255,255,255,.025);color:#8ea0c4;font-size:clamp(8px,.72vw,12px);
+  display:flex;align-items:center;justify-content:center;letter-spacing:.05em;
+}
+.fgap{grid-column:1/-1;grid-row:8;}
+.blocklabel{grid-column:1/3;align-self:center;color:#6f7ea3;font-size:clamp(8px,.7vw,11px);letter-spacing:.12em;}
+
+/* ===== 详情面板 ===== */
+.scrim{position:fixed;inset:0;background:rgba(3,5,10,.5);opacity:0;pointer-events:none;transition:opacity .3s;z-index:20;}
+.scrim.show{opacity:1;pointer-events:auto;}
+.detail{
+  position:fixed;top:0;right:0;height:100vh;width:min(440px,94vw);z-index:30;
+  transform:translateX(104%);transition:transform .4s cubic-bezier(.22,.8,.28,1);
+  background:linear-gradient(165deg,rgba(19,24,40,.94),rgba(9,12,22,.96));
+  border-left:1px solid rgba(255,255,255,.1);
+  box-shadow:-30px 0 80px rgba(0,0,0,.55);
+  display:flex;flex-direction:column;overflow:hidden;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+}
+.detail.open{transform:translateX(0);}
+.d-accent{height:3px;width:100%;background:linear-gradient(90deg,var(--c,#4dabf7),transparent);}
+.d-body{padding:18px 20px 22px;overflow-y:auto;flex:1;}
+.d-top{display:flex;align-items:center;gap:16px;}
+.d-sym{font-size:clamp(44px,5vw,64px);font-weight:900;line-height:.95;color:var(--c,#4dabf7);text-shadow:0 0 26px color-mix(in srgb,var(--c,#4dabf7) 55%,transparent);}
+.d-id{flex:1;}
+.d-cn{font-size:19px;font-weight:700;}
+.d-en{font-size:12px;color:var(--muted);letter-spacing:.06em;}
+.d-cat{display:inline-block;margin-top:6px;font-size:11px;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--c,#4dabf7) 18%,transparent);color:var(--c,#4dabf7);border:1px solid color-mix(in srgb,var(--c,#4dabf7) 40%,transparent);}
+.d-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#cbd5ea;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+.d-close:hover{background:rgba(255,255,255,.12);}
+.d-sec{margin-top:18px;}
+.d-sec h3{font-size:11px;font-weight:600;letter-spacing:.16em;color:#7d8db3;margin:0 0 8px;text-transform:uppercase;}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;}
+.kv .item{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:7px 10px;}
+.kv .k{font-size:10px;color:#7d8db3;}
+.kv .v{font-size:13px;font-weight:600;margin-top:2px;word-break:break-word;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.tchip{font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#cdd7ee;}
+.config{font-family:"Cascadia Code","Consolas",monospace;font-size:13px;line-height:1.6;color:#dbe6ff;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;}
+.shell{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.shell .k{font-size:11px;color:#8b9ab8;margin-right:2px;}
+.shell .s{font-size:11px;font-weight:700;padding:2px 7px;border-radius:7px;background:color-mix(in srgb,var(--c,#4dabf7) 14%,transparent);color:color-mix(in srgb,var(--c,#4dabf7) 80%,#fff);border:1px solid color-mix(in srgb,var(--c,#4dabf7) 30%,transparent);}
+.notes{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:7px;}
+.notes li{font-size:12.5px;line-height:1.62;color:#cbd5ea;}
+.notes li::marker{color:var(--c,#4dabf7);}
+.uses{font-size:12.5px;line-height:1.7;color:#b7c2dc;}
+
+.hint{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);font-size:11px;letter-spacing:.16em;color:#6d7a99;z-index:5;pointer-events:none;}
+.count{position:fixed;right:22px;bottom:12px;font-size:11px;color:#5f6b8a;letter-spacing:.1em;z-index:5;}
+
+@media (max-width:760px){
+  .legend{max-width:100%;justify-content:flex-start;}
+  .detail{top:auto;bottom:0;right:0;left:0;width:100%;height:78vh;transform:translateY(106%);border-left:0;border-top:1px solid rgba(255,255,255,.12);border-radius:18px 18px 0 0;}
+  .detail.open{transform:translateY(0);}
+  .cell .m{display:none;}
+}
+@media (prefers-reduced-motion:reduce){
+  .cell{animation:none;opacity:1;transform:none;}
+  .blob,.gridlines{animation:none;}
+}
+</style>
+</head>
+<body>
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div><div class="sheen"></div></div>
+<div class="gridlines"></div>
+<canvas id="stars"></canvas>
+<div class="vignette"></div>
+
+<div class="wrap">
+  <div class="head">
+    <div>
+      <h1 class="title">元素周期表</h1>
+      <div class="sub">PERIODIC TABLE OF ELEMENTS · 高中化学 · 118 种元素（含 2016 最新命名 113–118 号）</div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="pt" id="pt"></div>
+  <div class="hint">点击任意元素查看高中化学详解 · Click an element</div>
+  <div class="count">共 <span id="cnt">118</span> 种元素 · 数据截至 IUPAC 2016 命名</div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="detail" id="detail" aria-hidden="true">
+  <div class="d-accent" id="dAccent"></div>
+  <button class="d-close" id="dClose" aria-label="关闭">×</button>
+  <div class="d-body" id="dBody"></div>
+</aside>
+
+<script>
+const ELEMENTS = [{"z":1,"sym":"H","cn":"氢","en":"Hydrogen","mass":"1.008","cat":"nonmetal","period":1,"group":1,"glabel":"ⅠA","row":1,"col":1,"block":"s","ox":"+1, -1","state":"气态","mp":"-259.1 ℃","bp":"-252.9 ℃","density":"0.0899 g/L","eneg":2.2,"config":"1s¹","shells":[1],"notes":["最轻的元素，宇宙中最丰富的元素。","H₂ 具有还原性，可还原金属氧化物（如 H₂ + CuO → Cu + H₂O）。","与非金属化合：H₂ + Cl₂ 点燃生成 HCl；N₂ + 3H₂ ⇌ 2NH₃（工业合成氨）。","同位素氕(¹H)、氘(²H)、氚(³H)，是相对原子质量基准。"],"uses":"工业制盐酸、合成氨、金属冶炼还原剂、氢能源。","new":false},{"z":2,"sym":"He","cn":"氦","en":"Helium","mass":"4.0026","cat":"noble","period":1,"group":18,"glabel":"0","row":1,"col":18,"block":"s","ox":"0","state":"气态","mp":"-272.2 ℃","bp":"-268.9 ℃","density":"0.1785 g/L","eneg":"—","config":"1s²","shells":[2],"notes":["稀有气体，最外层 2 个电子，结构稳定，化学性质极不活泼。","密度仅次于氢，用于飞艇、气球。","沸点最低，用于低温超导冷却、深海呼吸气混合。"],"uses":"低温制冷、飞艇气球、焊接保护气、核磁共振冷却。","new":false},{"z":3,"sym":"Li","cn":"锂","en":"Lithium","mass":"6.94","cat":"alkali","period":2,"group":1,"glabel":"ⅠA","row":2,"col":1,"block":"s","ox":"+1","state":"固态","mp":"180.5 ℃","bp":"1342 ℃","density":"0.534 g/cm³","eneg":0.98,"config":"[He] 2s¹","shells":[2,1],"notes":["碱金属，活泼，需隔绝空气保存。","与 O₂ 反应只生成 Li₂O（对比 Na 生成 Na₂O₂，是常考差异）。","焰色反应呈洋红色。","锂电池的关键材料。"],"uses":"锂离子电池、轻质合金、玻璃陶瓷。","new":false},{"z":4,"sym":"Be","cn":"铍","en":"Beryllium","mass":"9.0122","cat":"alkaline","period":2,"group":2,"glabel":"ⅡA","row":2,"col":2,"block":"s","ox":"+2","state":"固态","mp":"1287 ℃","bp":"2469 ℃","density":"1.85 g/cm³","eneg":1.57,"config":"[He] 2s²","shells":[2,2],"notes":["碱土金属，氧化物和氢氧化物具有两性。","铍及化合物有毒，需防护。","密度小、刚度高，用于航空航天合金。"],"uses":"航空合金、X 射线窗口、核反应堆慢化剂。","new":false},{"z":5,"sym":"B","cn":"硼","en":"Boron","mass":"10.81","cat":"metalloid","period":2,"group":13,"glabel":"ⅢA","row":2,"col":13,"block":"p","ox":"+3","state":"固态","mp":"2076 ℃","bp":"3927 ℃","density":"2.34 g/cm³","eneg":2.04,"config":"[He] 2s² 2p¹","shells":[2,3],"notes":["准金属，硬度高。","硼酸 H₃BO₃ 为弱酸，可用于中和碱性；硼砂是重要硼化合物。","硼是植物必需微量元素。"],"uses":"硼硅玻璃、陶瓷、半导体掺杂、核控制材料。","new":false},{"z":6,"sym":"C","cn":"碳","en":"Carbon","mass":"12.011","cat":"nonmetal","period":2,"group":14,"glabel":"ⅣA","row":2,"col":14,"block":"p","ox":"+4, +2, -4","state":"固态","mp":"3550 ℃","bp":"4027 ℃","density":"2.27 g/cm³(石墨)","eneg":2.55,"config":"[He] 2s² 2p²","shells":[2,4],"notes":["同素异形体：金刚石、石墨、C₆₀（富勒烯）、石墨烯。","CO₂ 与 CO：CO 有毒，具还原性；CO₂ 是酸性氧化物。","C 具还原性：C + CuO 高温 → Cu + CO₂↑；C + O₂ 充分燃烧生成 CO₂。","是有机化学的骨架元素，形成种类最多的化合物。"],"uses":"燃料、钢铁冶炼、电极、金刚石刀具、碳材料。","new":false},{"z":7,"sym":"N","cn":"氮","en":"Nitrogen","mass":"14.007","cat":"nonmetal","period":2,"group":15,"glabel":"ⅤA","row":2,"col":15,"block":"p","ox":"-3, +2, +3, +4, +5","state":"气态","mp":"-210.0 ℃","bp":"-195.8 ℃","density":"1.251 g/L","eneg":3.04,"config":"[He] 2s² 2p³","shells":[2,5],"notes":["N₂ 中 N≡N 键能大，化学性质稳定，可作保护气。","氮的固定：N₂ → NH₃（合成氨）、→ NO（放电/高温）。","重要化合物：NH₃、NO、NO₂、HNO₃（强氧化性酸）、氮肥。","空气中体积分数约 78%。"],"uses":"合成氨、化肥、惰性保护气、硝酸生产。","new":false},{"z":8,"sym":"O","cn":"氧","en":"Oxygen","mass":"15.999","cat":"nonmetal","period":2,"group":16,"glabel":"ⅥA","row":2,"col":16,"block":"p","ox":"-2","state":"气态","mp":"-218.3 ℃","bp":"-183.0 ℃","density":"1.429 g/L","eneg":3.44,"config":"[He] 2s² 2p⁴","shells":[2,6],"notes":["O₂ 与 O₃ 互为同素异形体。","具氧化性，支持燃烧和呼吸。","实验室制 O₂：2KClO₃ →(MnO₂,Δ) 2KCl + 3O₂↑；2H₂O₂ →(MnO₂) 2H₂O + O₂↑。","地壳中含量最多的元素。"],"uses":"呼吸、医疗供氧、炼钢、火箭氧化剂。","new":false},{"z":9,"sym":"F","cn":"氟","en":"Fluorine","mass":"18.998","cat":"halogen","period":2,"group":17,"glabel":"ⅦA","row":2,"col":17,"block":"p","ox":"-1","state":"气态","mp":"-219.7 ℃","bp":"-188.1 ℃","density":"1.696 g/L","eneg":3.98,"config":"[He] 2s² 2p⁵","shells":[2,7],"notes":["非金属性最强的元素，氧化性极强。","HF 是弱酸，但能腐蚀玻璃（SiO₂ + 4HF → SiF₄↑ + 2H₂O）。","F₂ 与水剧烈反应生成 HF 和 O₂。","氟化物用于牙膏防龋。"],"uses":"氟化物、制冷剂、含氟高分子（PTFE）、制药。","new":false},{"z":10,"sym":"Ne","cn":"氖","en":"Neon","mass":"20.180","cat":"noble","period":2,"group":18,"glabel":"0","row":2,"col":18,"block":"p","ox":"0","state":"气态","mp":"-248.6 ℃","bp":"-246.1 ℃","density":"0.9002 g/L","eneg":"—","config":"[He] 2s² 2p⁶","shells":[2,8],"notes":["稀有气体，化学性质极不活泼。","通电发出橙红色光，用于霓虹灯。"],"uses":"霓虹灯、指示灯、激光。","new":false},{"z":11,"sym":"Na","cn":"钠","en":"Sodium","mass":"22.990","cat":"alkali","period":3,"group":1,"glabel":"ⅠA","row":3,"col":1,"block":"s","ox":"+1","state":"固态","mp":"97.8 ℃","bp":"883 ℃","density":"0.971 g/cm³","eneg":0.93,"config":"[Ne] 3s¹","shells":[2,8,1],"notes":["活泼碱金属，通常保存在煤油中。","与水剧烈反应：2Na + 2H₂O → 2NaOH + H₂↑。","在空气中燃烧生成 Na₂O₂（过氧化钠，淡黄色），可作供氧剂。","焰色反应呈黄色。"],"uses":"制 NaOH、NaCl、金属钠、钠灯、核冷却剂。","new":false},{"z":12,"sym":"Mg","cn":"镁","en":"Magnesium","mass":"24.305","cat":"alkaline","period":3,"group":2,"glabel":"ⅡA","row":3,"col":2,"block":"s","ox":"+2","state":"固态","mp":"650 ℃","bp":"1090 ℃","density":"1.74 g/cm³","eneg":1.31,"config":"[Ne] 3s²","shells":[2,8,2],"notes":["燃烧发出耀眼白光：2Mg + O₂ →(点燃) 2MgO。","可与 CO₂ 反应：2Mg + CO₂ →(点燃) 2MgO + C。","镁铝合金密度小、强度高，用于航空。"],"uses":"轻合金、烟火、还原剂、镁光灯。","new":false},{"z":13,"sym":"Al","cn":"铝","en":"Aluminium","mass":"26.982","cat":"posttrans","period":3,"group":13,"glabel":"ⅢA","row":3,"col":13,"block":"p","ox":"+3","state":"固态","mp":"660.4 ℃","bp":"2467 ℃","density":"2.70 g/cm³","eneg":1.61,"config":"[Ne] 3s² 3p¹","shells":[2,8,3],"notes":["两性元素：Al、Al₂O₃、Al(OH)₃ 均既能与酸又能与强碱反应。","表面易形成致密氧化膜而钝化，耐腐蚀。","铝热反应：2Al + Fe₂O₃ →(高温) Al₂O₃ + 2Fe，用于焊接钢轨。","地壳中含量最多的金属元素。"],"uses":"铝合金、导线、包装、建筑、铝热焊接。","new":false},{"z":14,"sym":"Si","cn":"硅","en":"Silicon","mass":"28.085","cat":"metalloid","period":3,"group":14,"glabel":"ⅣA","row":3,"col":14,"block":"p","ox":"+4","state":"固态","mp":"1414 ℃","bp":"3265 ℃","density":"2.33 g/cm³","eneg":1.9,"config":"[Ne] 3s² 3p²","shells":[2,8,4],"notes":["良好的半导体材料，用于芯片、太阳能电池。","SiO₂（石英、水晶）是酸性氧化物，与 HF 反应。","硅酸盐是陶瓷、玻璃、水泥的基础。"],"uses":"半导体、光伏、玻璃、陶瓷、光纤。","new":false},{"z":15,"sym":"P","cn":"磷","en":"Phosphorus","mass":"30.974","cat":"nonmetal","period":3,"group":15,"glabel":"ⅤA","row":3,"col":15,"block":"p","ox":"-3, +3, +5","state":"固态","mp":"44.1 ℃(白磷)","bp":"280 ℃(白磷)","density":"1.82 g/cm³(白磷)","eneg":2.19,"config":"[Ne] 3s² 3p³","shells":[2,8,5],"notes":["同素异形体：白磷（剧毒、易自燃）与红磷（稳定）。","P₂O₅ 是酸性氧化物，与水生成 H₃PO₄。","磷肥（过磷酸钙）、农药、火柴。"],"uses":"磷肥、农药、火柴、阻燃剂。","new":false},{"z":16,"sym":"S","cn":"硫","en":"Sulfur","mass":"32.06","cat":"nonmetal","period":3,"group":16,"glabel":"ⅥA","row":3,"col":16,"block":"p","ox":"-2, +4, +6","state":"固态","mp":"115.2 ℃","bp":"444.6 ℃","density":"2.07 g/cm³","eneg":2.58,"config":"[Ne] 3s² 3p⁴","shells":[2,8,6],"notes":["淡黄色固体，俗称硫黄。","S + O₂ →(点燃) SO₂；SO₂ 具漂白性和还原性。","浓 H₂SO₄ 具强氧化性、吸水性、脱水性；接触法制硫酸。","SO₄²⁻ 检验：加 BaCl₂ 生成不溶于酸的 BaSO₄ 白色沉淀。"],"uses":"硫酸生产、橡胶硫化、农药、火药。","new":false},{"z":17,"sym":"Cl","cn":"氯","en":"Chlorine","mass":"35.45","cat":"halogen","period":3,"group":17,"glabel":"ⅦA","row":3,"col":17,"block":"p","ox":"-1, +1, +3, +5, +7","state":"气态","mp":"-101.0 ℃","bp":"-34.0 ℃","density":"3.214 g/L","eneg":3.16,"config":"[Ne] 3s² 3p⁵","shells":[2,8,7],"notes":["黄绿色刺激性气体，有毒。","强氧化性：Cl₂ + 2NaBr → 2NaCl + Br₂。","与 NaOH 反应制漂白液（NaClO）；与石灰乳制漂白粉。","Cl⁻ 检验：AgNO₃ + 稀 HNO₃ 生成白色 AgCl 沉淀。"],"uses":"消毒、漂白、制盐酸、有机合成。","new":false},{"z":18,"sym":"Ar","cn":"氩","en":"Argon","mass":"39.948","cat":"noble","period":3,"group":18,"glabel":"0","row":3,"col":18,"block":"p","ox":"0","state":"气态","mp":"-189.3 ℃","bp":"-185.9 ℃","density":"1.784 g/L","eneg":"—","config":"[Ne] 3s² 3p⁶","shells":[2,8,8],"notes":["稀有气体，化学性质极不活泼。","空气中含量最高的稀有气体（约 0.93%）。","常用作焊接保护气。"],"uses":"焊接保护气、白炽灯填充、冶金保护。","new":false},{"z":19,"sym":"K","cn":"钾","en":"Potassium","mass":"39.098","cat":"alkali","period":4,"group":1,"glabel":"ⅠA","row":4,"col":1,"block":"s","ox":"+1","state":"固态","mp":"63.4 ℃","bp":"759 ℃","density":"0.862 g/cm³","eneg":0.82,"config":"[Ar] 4s¹","shells":[2,8,8,1],"notes":["活泼碱金属，与水反应比钠更剧烈。","焰色反应呈紫色（需透过蓝色钴玻璃观察）。","KOH 是强碱；钾肥是三大化肥之一。"],"uses":"钾肥、KOH、玻璃、肥皂。","new":false},{"z":20,"sym":"Ca","cn":"钙","en":"Calcium","mass":"40.078","cat":"alkaline","period":4,"group":2,"glabel":"ⅡA","row":4,"col":2,"block":"s","ox":"+2","state":"固态","mp":"842 ℃","bp":"1484 ℃","density":"1.55 g/cm³","eneg":1.0,"config":"[Ar] 4s²","shells":[2,8,8,2],"notes":["活泼碱土金属。","CaO（生石灰）+ H₂O → Ca(OH)₂（熟石灰），放热。","CaCO₃（石灰石）高温分解生成 CaO。","焰色反应呈砖红色。"],"uses":"建筑材料、炼钢脱氧、补钙、水泥。","new":false},{"z":21,"sym":"Sc","cn":"钪","en":"Scandium","mass":"44.956","cat":"transition","period":4,"group":3,"glabel":"ⅢB","row":4,"col":3,"block":"d","ox":"+3","state":"固态","mp":"1541 ℃","bp":"2836 ℃","density":"2.99 g/cm³","eneg":1.36,"config":"[Ar] 3d¹ 4s²","shells":[2,8,9,2],"notes":["稀土元素，质轻、强度高。","用于高性能铝合金。"],"uses":"航空合金、高强度灯。","new":false},{"z":22,"sym":"Ti","cn":"钛","en":"Titanium","mass":"47.867","cat":"transition","period":4,"group":4,"glabel":"ⅣB","row":4,"col":4,"block":"d","ox":"+4, +3","state":"固态","mp":"1668 ℃","bp":"3287 ℃","density":"4.54 g/cm³","eneg":1.54,"config":"[Ar] 3d² 4s²","shells":[2,8,10,2],"notes":["密度小、强度高、耐腐蚀，被誉为“太空金属”。","TiO₂ 是白色颜料（钛白粉）。","钛合金用于航空、医疗植入物。"],"uses":"航空合金、医疗植入、钛白粉、化工设备。","new":false},{"z":23,"sym":"V","cn":"钒","en":"Vanadium","mass":"50.942","cat":"transition","period":4,"group":5,"glabel":"ⅤB","row":4,"col":5,"block":"d","ox":"+5, +4, +3, +2","state":"固态","mp":"1910 ℃","bp":"3407 ℃","density":"6.11 g/cm³","eneg":1.63,"config":"[Ar] 3d³ 4s²","shells":[2,8,11,2],"notes":["V₂O₅ 是接触法制硫酸的催化剂。","钒钢强度高。"],"uses":"合金钢、催化剂、电池。","new":false},{"z":24,"sym":"Cr","cn":"铬","en":"Chromium","mass":"51.996","cat":"transition","period":4,"group":6,"glabel":"ⅥB","row":4,"col":6,"block":"d","ox":"+6, +3, +2","state":"固态","mp":"1857 ℃","bp":"2671 ℃","density":"7.19 g/cm³","eneg":1.66,"config":"[Ar] 3d⁵ 4s¹","shells":[2,8,13,1],"notes":["K₂Cr₂O₇（橙色）具强氧化性，酸性条件下可氧化 Fe²⁺、乙醇等。","Cr³⁺ 呈绿色；Cr(OH)₃ 具两性。","铬镀层光亮耐磨，用于电镀。"],"uses":"不锈钢、电镀、颜料、鞣革。","new":false},{"z":25,"sym":"Mn","cn":"锰","en":"Manganese","mass":"54.938","cat":"transition","period":4,"group":7,"glabel":"ⅦB","row":4,"col":7,"block":"d","ox":"+7, +6, +4, +2","state":"固态","mp":"1246 ℃","bp":"2061 ℃","density":"7.30 g/cm³","eneg":1.55,"config":"[Ar] 3d⁵ 4s²","shells":[2,8,13,2],"notes":["KMnO₄（高锰酸钾，紫红色）是强氧化剂，酸性条件下氧化性更强。","MnO₂ 可作 H₂O₂ 分解、KClO₃ 分解的催化剂。","Mn²⁺ 近无色。"],"uses":"炼钢、电池、高锰酸钾、催化剂。","new":false},{"z":26,"sym":"Fe","cn":"铁","en":"Iron","mass":"55.845","cat":"transition","period":4,"group":8,"glabel":"Ⅷ","row":4,"col":8,"block":"d","ox":"+2, +3","state":"固态","mp":"1538 ℃","bp":"2861 ℃","density":"7.87 g/cm³","eneg":1.83,"config":"[Ar] 3d⁶ 4s²","shells":[2,8,14,2],"notes":["变价金属，常见 Fe²⁺（浅绿色）与 Fe³⁺（棕黄色）。","Fe(OH)₂ 白色→迅速变灰绿→最终红褐色 Fe(OH)₃。","Fe³⁺ 检验：加 KSCN 溶液变血红色。","铁在潮湿空气中生锈（主要成分 Fe₂O₃·xH₂O）。","高炉炼铁：Fe₂O₃ + 3CO →(高温) 2Fe + 3CO₂。"],"uses":"钢铁、建筑、机械、磁性材料。","new":false},{"z":27,"sym":"Co","cn":"钴","en":"Cobalt","mass":"58.933","cat":"transition","period":4,"group":9,"glabel":"Ⅷ","row":4,"col":9,"block":"d","ox":"+2, +3","state":"固态","mp":"1495 ℃","bp":"2927 ℃","density":"8.89 g/cm³","eneg":1.88,"config":"[Ar] 3d⁷ 4s²","shells":[2,8,15,2],"notes":["钴蓝颜料；CoCl₂ 随含水不同变色，可作湿度指示。","钴是维生素 B₁₂ 的核心元素。"],"uses":"硬质合金、电池、颜料、磁性材料。","new":false},{"z":28,"sym":"Ni","cn":"镍","en":"Nickel","mass":"58.693","cat":"transition","period":4,"group":10,"glabel":"Ⅷ","row":4,"col":10,"block":"d","ox":"+2, +3","state":"固态","mp":"1455 ℃","bp":"2913 ℃","density":"8.91 g/cm³","eneg":1.91,"config":"[Ar] 3d⁸ 4s²","shells":[2,8,16,2],"notes":["耐腐蚀，常用于不锈钢和电镀。","镍是氢化反应的催化剂。"],"uses":"不锈钢、电镀、电池、催化剂。","new":false},{"z":29,"sym":"Cu","cn":"铜","en":"Copper","mass":"63.546","cat":"transition","period":4,"group":11,"glabel":"ⅠB","row":4,"col":11,"block":"d","ox":"+2, +1","state":"固态","mp":"1085 ℃","bp":"2562 ℃","density":"8.96 g/cm³","eneg":1.9,"config":"[Ar] 3d¹⁰ 4s¹","shells":[2,8,18,1],"notes":["紫红色金属，导电导热性优良（仅次于银）。","Cu²⁺ 溶液呈蓝色；CuSO₄·5H₂O 是蓝色晶体。","Cu 与浓 HNO₃ 生成 NO₂（红棕色），与稀 HNO₃ 生成 NO（无色）。","铜绿主要成分 Cu₂(OH)₂CO₃。"],"uses":"电线电缆、电器、合金（黄铜/青铜）、货币。","new":false},{"z":30,"sym":"Zn","cn":"锌","en":"Zinc","mass":"65.38","cat":"transition","period":4,"group":12,"glabel":"ⅡB","row":4,"col":12,"block":"d","ox":"+2","state":"固态","mp":"419.5 ℃","bp":"907 ℃","density":"7.14 g/cm³","eneg":1.65,"config":"[Ar] 3d¹⁰ 4s²","shells":[2,8,18,2],"notes":["较活泼金属，与稀酸反应制 H₂：Zn + 2HCl → ZnCl₂ + H₂↑。","原电池中常作负极（如锌锰干电池）。","镀锌可防腐（白铁皮）。"],"uses":"镀锌、电池、合金、氧化锌。","new":false},{"z":31,"sym":"Ga","cn":"镓","en":"Gallium","mass":"69.723","cat":"posttrans","period":4,"group":13,"glabel":"ⅢA","row":4,"col":13,"block":"p","ox":"+3","state":"固态","mp":"29.8 ℃","bp":"2403 ℃","density":"5.91 g/cm³","eneg":1.81,"config":"[Ar] 3d¹⁰ 4s² 4p¹","shells":[2,8,18,3],"notes":["熔点低（约 30℃），可在手心熔化。","用于半导体（GaAs）、LED。"],"uses":"半导体、LED、低熔点合金。","new":false},{"z":32,"sym":"Ge","cn":"锗","en":"Germanium","mass":"72.630","cat":"metalloid","period":4,"group":14,"glabel":"ⅣA","row":4,"col":14,"block":"p","ox":"+4, +2","state":"固态","mp":"938 ℃","bp":"2833 ℃","density":"5.32 g/cm³","eneg":2.01,"config":"[Ar] 3d¹⁰ 4s² 4p²","shells":[2,8,18,4],"notes":["早期晶体管材料，现用于红外光学、光纤。","准金属。"],"uses":"半导体、红外光学、光纤。","new":false},{"z":33,"sym":"As","cn":"砷","en":"Arsenic","mass":"74.922","cat":"metalloid","period":4,"group":15,"glabel":"ⅤA","row":4,"col":15,"block":"p","ox":"+3, +5, -3","state":"固态","mp":"817 ℃(升华)","bp":"614 ℃(升华)","density":"5.73 g/cm³","eneg":2.18,"config":"[Ar] 3d¹⁰ 4s² 4p³","shells":[2,8,18,5],"notes":["砷及其化合物有毒（砒霜 As₂O₃）。","砷化镓是半导体材料。"],"uses":"半导体、合金、农药（受限）。","new":false},{"z":34,"sym":"Se","cn":"硒","en":"Selenium","mass":"78.971","cat":"nonmetal","period":4,"group":16,"glabel":"ⅥA","row":4,"col":16,"block":"p","ox":"-2, +4, +6","state":"固态","mp":"221 ℃","bp":"685 ℃","density":"4.81 g/cm³","eneg":2.55,"config":"[Ar] 3d¹⁰ 4s² 4p⁴","shells":[2,8,18,6],"notes":["人体必需微量元素，硒缺乏与克山病相关。","光电导性好，用于复印、光电池。"],"uses":"光电材料、玻璃着色、营养补充。","new":false},{"z":35,"sym":"Br","cn":"溴","en":"Bromine","mass":"79.904","cat":"halogen","period":4,"group":17,"glabel":"ⅦA","row":4,"col":17,"block":"p","ox":"-1, +1, +3, +5, +7","state":"液态","mp":"-7.2 ℃","bp":"58.8 ℃","density":"3.12 g/cm³","eneg":2.96,"config":"[Ar] 3d¹⁰ 4s² 4p⁵","shells":[2,8,18,7],"notes":["深红棕色液体，易挥发，有刺激性气味。","Br₂ 氧化性弱于 Cl₂、强于 I₂：Cl₂ + 2KBr → 2KCl + Br₂。","AgBr 见光分解，用于感光材料。"],"uses":"感光材料、阻燃剂、医药、海水提溴。","new":false},{"z":36,"sym":"Kr","cn":"氪","en":"Krypton","mass":"83.798","cat":"noble","period":4,"group":18,"glabel":"0","row":4,"col":18,"block":"p","ox":"0","state":"气态","mp":"-157.4 ℃","bp":"-153.2 ℃","density":"1.798 g/L","eneg":"—","config":"[Ar] 3d¹⁰ 4s² 4p⁶","shells":[2,8,18,8],"notes":["稀有气体，用于高性能灯、激光。"],"uses":"照明、激光、绝缘气体。","new":false},{"z":37,"sym":"Rb","cn":"铷","en":"Rubidium","mass":"85.468","cat":"alkali","period":5,"group":1,"glabel":"ⅠA","row":5,"col":1,"block":"s","ox":"+1","state":"固态","mp":"39.3 ℃","bp":"688 ℃","density":"1.532 g/cm³","eneg":0.82,"config":"[Kr] 5s¹","shells":[2,8,18,8,1],"notes":["极活泼碱金属，遇水剧烈反应。","用于原子钟。"],"uses":"原子钟、光电管、特种玻璃。","new":false},{"z":38,"sym":"Sr","cn":"锶","en":"Strontium","mass":"87.62","cat":"alkaline","period":5,"group":2,"glabel":"ⅡA","row":5,"col":2,"block":"s","ox":"+2","state":"固态","mp":"777 ℃","bp":"1382 ℃","density":"2.63 g/cm³","eneg":0.95,"config":"[Kr] 5s²","shells":[2,8,18,8,2],"notes":["焰色反应呈洋红色，用于焰火。","锶-90 是核裂变产物，具放射性。"],"uses":"焰火、颜料、特种玻璃。","new":false},{"z":39,"sym":"Y","cn":"钇","en":"Yttrium","mass":"88.906","cat":"transition","period":5,"group":3,"glabel":"ⅢB","row":5,"col":3,"block":"d","ox":"+3","state":"固态","mp":"1522 ℃","bp":"3345 ℃","density":"4.47 g/cm³","eneg":1.22,"config":"[Kr] 4d¹ 5s²","shells":[2,8,18,9,2],"notes":["稀土元素，用于荧光粉、激光、超导。"],"uses":"荧光粉、激光、超导、陶瓷。","new":false},{"z":40,"sym":"Zr","cn":"锆","en":"Zirconium","mass":"91.224","cat":"transition","period":5,"group":4,"glabel":"ⅣB","row":5,"col":4,"block":"d","ox":"+4","state":"固态","mp":"1855 ℃","bp":"4409 ℃","density":"6.51 g/cm³","eneg":1.33,"config":"[Kr] 4d² 5s²","shells":[2,8,18,10,2],"notes":["耐腐蚀、耐高温，用于核反应堆包壳。","锆石是宝石。"],"uses":"核工业、陶瓷、耐火材料。","new":false},{"z":41,"sym":"Nb","cn":"铌","en":"Niobium","mass":"92.906","cat":"transition","period":5,"group":5,"glabel":"ⅤB","row":5,"col":5,"block":"d","ox":"+5, +3","state":"固态","mp":"2469 ℃","bp":"4927 ℃","density":"8.57 g/cm³","eneg":1.6,"config":"[Kr] 4d⁴ 5s¹","shells":[2,8,18,12,1],"notes":["超导材料（如 Nb-Ti 合金）。"],"uses":"超导、合金钢、航天。","new":false},{"z":42,"sym":"Mo","cn":"钼","en":"Molybdenum","mass":"95.95","cat":"transition","period":5,"group":6,"glabel":"ⅥB","row":5,"col":6,"block":"d","ox":"+6, +4","state":"固态","mp":"2617 ℃","bp":"4614 ℃","density":"9.56 g/cm³","eneg":2.16,"config":"[Kr] 4d⁵ 5s¹","shells":[2,8,18,13,1],"notes":["钼钢强度高、耐高温。","钼是固氮酶的活性中心。"],"uses":"合金钢、催化剂、润滑剂。","new":false},{"z":43,"sym":"Tc","cn":"锝","en":"Technetium","mass":"[98]","cat":"transition","period":5,"group":7,"glabel":"ⅦB","row":5,"col":7,"block":"d","ox":"+7","state":"固态","mp":"2157 ℃","bp":"4265 ℃","density":"11.5 g/cm³","eneg":1.9,"config":"[Kr] 4d⁵ 5s²","shells":[2,8,18,13,2],"notes":["第一个人工合成元素，无稳定同位素。","锝-99m 用于医学显像。"],"uses":"医学显像、科研。","new":false},{"z":44,"sym":"Ru","cn":"钌","en":"Ruthenium","mass":"101.07","cat":"transition","period":5,"group":8,"glabel":"Ⅷ","row":5,"col":8,"block":"d","ox":"+3, +4, +8","state":"固态","mp":"2334 ℃","bp":"4150 ℃","density":"12.37 g/cm³","eneg":2.2,"config":"[Kr] 4d⁷ 5s¹","shells":[2,8,18,15,1],"notes":["铂族金属，耐腐蚀，用于催化剂、电子触点。"],"uses":"催化剂、电子、耐磨合金。","new":false},{"z":45,"sym":"Rh","cn":"铑","en":"Rhodium","mass":"102.906","cat":"transition","period":5,"group":9,"glabel":"Ⅷ","row":5,"col":9,"block":"d","ox":"+3","state":"固态","mp":"1964 ℃","bp":"3695 ℃","density":"12.41 g/cm³","eneg":2.28,"config":"[Kr] 4d⁸ 5s¹","shells":[2,8,18,16,1],"notes":["汽车尾气三元催化器的关键成分。"],"uses":"催化剂、首饰、反射镜。","new":false},{"z":46,"sym":"Pd","cn":"钯","en":"Palladium","mass":"106.42","cat":"transition","period":5,"group":10,"glabel":"Ⅷ","row":5,"col":10,"block":"d","ox":"+2, +4","state":"固态","mp":"1555 ℃","bp":"2963 ℃","density":"12.02 g/cm³","eneg":2.2,"config":"[Kr] 4d¹⁰","shells":[2,8,18,18],"notes":["能大量吸收氢气，用于储氢、加氢催化。"],"uses":"催化剂、储氢、电子。","new":false},{"z":47,"sym":"Ag","cn":"银","en":"Silver","mass":"107.868","cat":"transition","period":5,"group":11,"glabel":"ⅠB","row":5,"col":11,"block":"d","ox":"+1","state":"固态","mp":"961.8 ℃","bp":"2162 ℃","density":"10.49 g/cm³","eneg":1.93,"config":"[Kr] 4d¹⁰ 5s¹","shells":[2,8,18,18,1],"notes":["导电导热性最好的金属。","AgNO₃ 用于检验 Cl⁻、Br⁻、I⁻（生成 AgCl 白、AgBr 淡黄、AgI 黄沉淀）。","AgBr 感光分解，用于摄影。"],"uses":"电子、首饰、感光材料、抗菌。","new":false},{"z":48,"sym":"Cd","cn":"镉","en":"Cadmium","mass":"112.414","cat":"transition","period":5,"group":12,"glabel":"ⅡB","row":5,"col":12,"block":"d","ox":"+2","state":"固态","mp":"321 ℃","bp":"767 ℃","density":"8.65 g/cm³","eneg":1.69,"config":"[Kr] 4d¹⁰ 5s²","shells":[2,8,18,18,2],"notes":["重金属，有毒（痛痛病）。","用于镍镉电池、颜料。"],"uses":"电池、颜料、镀层。","new":false},{"z":49,"sym":"In","cn":"铟","en":"Indium","mass":"114.818","cat":"posttrans","period":5,"group":13,"glabel":"ⅢA","row":5,"col":13,"block":"p","ox":"+3","state":"固态","mp":"156.6 ℃","bp":"2072 ℃","density":"7.31 g/cm³","eneg":1.78,"config":"[Kr] 4d¹⁰ 5s² 5p¹","shells":[2,8,18,18,3],"notes":["用于 ITO 透明导电膜（触摸屏、液晶）。"],"uses":"透明电极、焊料、半导体。","new":false},{"z":50,"sym":"Sn","cn":"锡","en":"Tin","mass":"118.710","cat":"posttrans","period":5,"group":14,"glabel":"ⅣA","row":5,"col":14,"block":"p","ox":"+2, +4","state":"固态","mp":"231.9 ℃","bp":"2602 ℃","density":"7.31 g/cm³","eneg":1.96,"config":"[Kr] 4d¹⁰ 5s² 5p²","shells":[2,8,18,18,4],"notes":["锡箔、马口铁（镀锡铁）用于罐头。","SnCl₂ 具还原性。"],"uses":"焊料、马口铁、合金（青铜）。","new":false},{"z":51,"sym":"Sb","cn":"锑","en":"Antimony","mass":"121.760","cat":"metalloid","period":5,"group":15,"glabel":"ⅤA","row":5,"col":15,"block":"p","ox":"+3, +5, -3","state":"固态","mp":"630.7 ℃","bp":"1587 ℃","density":"6.68 g/cm³","eneg":2.05,"config":"[Kr] 4d¹⁰ 5s² 5p³","shells":[2,8,18,18,5],"notes":["用于阻燃剂、合金（铅锑合金）。"],"uses":"阻燃剂、合金、电池。","new":false},{"z":52,"sym":"Te","cn":"碲","en":"Tellurium","mass":"127.60","cat":"metalloid","period":5,"group":16,"glabel":"ⅥA","row":5,"col":16,"block":"p","ox":"-2, +4, +6","state":"固态","mp":"449.5 ℃","bp":"988 ℃","density":"6.24 g/cm³","eneg":2.1,"config":"[Kr] 4d¹⁰ 5s² 5p⁴","shells":[2,8,18,18,6],"notes":["用于碲化镉薄膜太阳能电池。"],"uses":"光伏、热电、合金。","new":false},{"z":53,"sym":"I","cn":"碘","en":"Iodine","mass":"126.904","cat":"halogen","period":5,"group":17,"glabel":"ⅦA","row":5,"col":17,"block":"p","ox":"-1, +1, +5, +7","state":"固态","mp":"113.7 ℃","bp":"184.3 ℃","density":"4.93 g/cm³","eneg":2.66,"config":"[Kr] 4d¹⁰ 5s² 5p⁵","shells":[2,8,18,18,7],"notes":["紫黑色固体，易升华成紫色蒸气。","淀粉遇 I₂ 变蓝，是碘的检验方法。","碘酒是 I₂ 的酒精溶液；KI 用于补碘。"],"uses":"医药、消毒、摄影、营养补充。","new":false},{"z":54,"sym":"Xe","cn":"氙","en":"Xenon","mass":"131.293","cat":"noble","period":5,"group":18,"glabel":"0","row":5,"col":18,"block":"p","ox":"0","state":"气态","mp":"-111.8 ℃","bp":"-108.1 ℃","density":"5.894 g/L","eneg":"—","config":"[Kr] 4d¹⁰ 5s² 5p⁶","shells":[2,8,18,18,8],"notes":["用于氙灯、离子推进器。","可与氟形成 XeF₂ 等化合物（稀有气体反常）。"],"uses":"氙灯、麻醉、离子推进、激光。","new":false},{"z":55,"sym":"Cs","cn":"铯","en":"Caesium","mass":"132.905","cat":"alkali","period":6,"group":1,"glabel":"ⅠA","row":6,"col":1,"block":"s","ox":"+1","state":"固态","mp":"28.4 ℃","bp":"671 ℃","density":"1.873 g/cm³","eneg":0.79,"config":"[Xe] 6s¹","shells":[2,8,18,18,8,1],"notes":["最活泼的金属之一，遇水爆炸。","铯原子钟是时间基准。"],"uses":"原子钟、光电管、特种玻璃。","new":false},{"z":56,"sym":"Ba","cn":"钡","en":"Barium","mass":"137.327","cat":"alkaline","period":6,"group":2,"glabel":"ⅡA","row":6,"col":2,"block":"s","ox":"+2","state":"固态","mp":"727 ℃","bp":"1870 ℃","density":"3.51 g/cm³","eneg":0.89,"config":"[Xe] 6s²","shells":[2,8,18,18,8,2],"notes":["焰色反应呈黄绿色。","BaSO₄ 不溶于水和酸，可作“钡餐”造影剂。","BaCl₂ 用于检验 SO₄²⁻。"],"uses":"钡餐、颜料、玻璃、烟火。","new":false},{"z":57,"sym":"La","cn":"镧","en":"Lanthanum","mass":"138.905","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":3,"block":"f","ox":"+3","state":"固态","mp":"920 ℃","bp":"3464 ℃","density":"6.15 g/cm³","eneg":1.1,"config":"[Xe] 5d¹ 6s²","shells":[2,8,18,18,9,2],"notes":["镧系元素之首，性质与稀土相似。","用于镍氢电池、光学玻璃、催化剂。"],"uses":"镍氢电池、光学玻璃、催化剂。","new":false},{"z":58,"sym":"Ce","cn":"铈","en":"Cerium","mass":"140.116","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":4,"block":"f","ox":"+3, +4","state":"固态","mp":"798 ℃","bp":"3443 ℃","density":"6.77 g/cm³","eneg":1.12,"config":"[Xe] 4f¹ 5d¹ 6s²","shells":[2,8,18,19,9,2],"notes":["最丰富的稀土元素之一。","CeO₂ 用作汽车尾气催化剂、抛光粉。"],"uses":"催化剂、抛光粉、打火石。","new":false},{"z":59,"sym":"Pr","cn":"镨","en":"Praseodymium","mass":"140.908","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":5,"block":"f","ox":"+3","state":"固态","mp":"931 ℃","bp":"3520 ℃","density":"6.77 g/cm³","eneg":1.13,"config":"[Xe] 4f³ 6s²","shells":[2,8,18,21,8,2],"notes":["用于强磁材料、玻璃着色（绿色）。"],"uses":"永磁材料、玻璃着色。","new":false},{"z":60,"sym":"Nd","cn":"钕","en":"Neodymium","mass":"144.242","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":6,"block":"f","ox":"+3","state":"固态","mp":"1024 ℃","bp":"3074 ℃","density":"7.01 g/cm³","eneg":1.14,"config":"[Xe] 4f⁴ 6s²","shells":[2,8,18,22,8,2],"notes":["钕铁硼是最强的永磁材料，用于电机、耳机。"],"uses":"永磁材料、激光、电机。","new":false},{"z":61,"sym":"Pm","cn":"钷","en":"Promethium","mass":"[145]","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":7,"block":"f","ox":"+3","state":"固态","mp":"1042 ℃","bp":"3000 ℃","density":"7.26 g/cm³","eneg":1.13,"config":"[Xe] 4f⁵ 6s²","shells":[2,8,18,23,8,2],"notes":["具放射性的稀土元素，无稳定同位素。"],"uses":"核电池、荧光材料、科研。","new":false},{"z":62,"sym":"Sm","cn":"钐","en":"Samarium","mass":"150.36","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":8,"block":"f","ox":"+3, +2","state":"固态","mp":"1072 ℃","bp":"1794 ℃","density":"7.52 g/cm³","eneg":1.17,"config":"[Xe] 4f⁶ 6s²","shells":[2,8,18,24,8,2],"notes":["钐钴永磁材料耐高温。"],"uses":"永磁材料、核反应堆控制棒。","new":false},{"z":63,"sym":"Eu","cn":"铕","en":"Europium","mass":"151.964","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":9,"block":"f","ox":"+3, +2","state":"固态","mp":"822 ℃","bp":"1529 ℃","density":"5.24 g/cm³","eneg":1.2,"config":"[Xe] 4f⁷ 6s²","shells":[2,8,18,25,8,2],"notes":["铕的荧光化合物用于彩色电视、LED 红色荧光粉。"],"uses":"荧光粉、防伪、激光。","new":false},{"z":64,"sym":"Gd","cn":"钆","en":"Gadolinium","mass":"157.25","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":10,"block":"f","ox":"+3","state":"固态","mp":"1313 ℃","bp":"3273 ℃","density":"7.90 g/cm³","eneg":1.2,"config":"[Xe] 4f⁷ 5d¹ 6s²","shells":[2,8,18,25,9,2],"notes":["钆配合物用作磁共振（MRI）造影剂。","磁性强。"],"uses":"MRI 造影、磁制冷、核工业。","new":false},{"z":65,"sym":"Tb","cn":"铽","en":"Terbium","mass":"158.925","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":11,"block":"f","ox":"+3","state":"固态","mp":"1356 ℃","bp":"3230 ℃","density":"8.23 g/cm³","eneg":1.2,"config":"[Xe] 4f⁹ 6s²","shells":[2,8,18,27,8,2],"notes":["绿色荧光粉的关键成分。"],"uses":"荧光粉、磁光材料。","new":false},{"z":66,"sym":"Dy","cn":"镝","en":"Dysprosium","mass":"162.500","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":12,"block":"f","ox":"+3","state":"固态","mp":"1412 ℃","bp":"2567 ℃","density":"8.55 g/cm³","eneg":1.22,"config":"[Xe] 4f¹⁰ 6s²","shells":[2,8,18,28,8,2],"notes":["提高钕铁硼磁体耐高温性能。"],"uses":"永磁材料、核控制棒。","new":false},{"z":67,"sym":"Ho","cn":"钬","en":"Holmium","mass":"164.930","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":13,"block":"f","ox":"+3","state":"固态","mp":"1474 ℃","bp":"2700 ℃","density":"8.80 g/cm³","eneg":1.23,"config":"[Xe] 4f¹¹ 6s²","shells":[2,8,18,29,8,2],"notes":["钬激光用于医疗手术。"],"uses":"激光、磁材料。","new":false},{"z":68,"sym":"Er","cn":"铒","en":"Erbium","mass":"167.259","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":14,"block":"f","ox":"+3","state":"固态","mp":"1529 ℃","bp":"2868 ℃","density":"9.05 g/cm³","eneg":1.24,"config":"[Xe] 4f¹² 6s²","shells":[2,8,18,30,8,2],"notes":["掺铒光纤放大器是光通信关键。"],"uses":"光通信、激光、玻璃着色。","new":false},{"z":69,"sym":"Tm","cn":"铥","en":"Thulium","mass":"168.934","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":15,"block":"f","ox":"+3","state":"固态","mp":"1545 ℃","bp":"1950 ℃","density":"9.32 g/cm³","eneg":1.25,"config":"[Xe] 4f¹³ 6s²","shells":[2,8,18,31,8,2],"notes":["稀土中含量最少之一，用于激光、X 射线。"],"uses":"激光、医疗、科研。","new":false},{"z":70,"sym":"Yb","cn":"镱","en":"Ytterbium","mass":"173.045","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":16,"block":"f","ox":"+3, +2","state":"固态","mp":"824 ℃","bp":"1196 ℃","density":"6.90 g/cm³","eneg":1.1,"config":"[Xe] 4f¹⁴ 6s²","shells":[2,8,18,32,8,2],"notes":["镱原子钟精度极高。"],"uses":"原子钟、光纤激光、合金。","new":false},{"z":71,"sym":"Lu","cn":"镥","en":"Lutetium","mass":"174.967","cat":"lanthanide","period":6,"group":3,"glabel":"ⅢB","row":9,"col":17,"block":"f","ox":"+3","state":"固态","mp":"1663 ℃","bp":"3402 ℃","density":"9.84 g/cm³","eneg":1.27,"config":"[Xe] 4f¹⁴ 5d¹ 6s²","shells":[2,8,18,32,9,2],"notes":["镥-177 用于靶向核医学治疗。"],"uses":"核医学、催化剂、PET。","new":false},{"z":72,"sym":"Hf","cn":"铪","en":"Hafnium","mass":"178.49","cat":"transition","period":6,"group":4,"glabel":"ⅣB","row":6,"col":4,"block":"d","ox":"+4","state":"固态","mp":"2233 ℃","bp":"4603 ℃","density":"13.31 g/cm³","eneg":1.3,"config":"[Xe] 4f¹⁴ 5d² 6s²","shells":[2,8,18,32,10,2],"notes":["用于核反应堆控制棒、高温合金。"],"uses":"核工业、高温合金、等离子切割。","new":false},{"z":73,"sym":"Ta","cn":"钽","en":"Tantalum","mass":"180.948","cat":"transition","period":6,"group":5,"glabel":"ⅤB","row":6,"col":5,"block":"d","ox":"+5","state":"固态","mp":"3017 ℃","bp":"5458 ℃","density":"16.69 g/cm³","eneg":1.5,"config":"[Xe] 4f¹⁴ 5d³ 6s²","shells":[2,8,18,32,11,2],"notes":["钽电容体积小、容量大，用于电子设备。","耐腐蚀，用于化工设备、医疗植入。"],"uses":"钽电容、医疗植入、化工。","new":false},{"z":74,"sym":"W","cn":"钨","en":"Tungsten","mass":"183.84","cat":"transition","period":6,"group":6,"glabel":"ⅥB","row":6,"col":6,"block":"d","ox":"+6","state":"固态","mp":"3422 ℃","bp":"5555 ℃","density":"19.25 g/cm³","eneg":2.36,"config":"[Xe] 4f¹⁴ 5d⁴ 6s²","shells":[2,8,18,32,12,2],"notes":["熔点最高的金属（约 3422℃），用作白炽灯灯丝。","碳化钨硬度极高，用于刀具。"],"uses":"灯丝、硬质合金、军工、电极。","new":false},{"z":75,"sym":"Re","cn":"铼","en":"Rhenium","mass":"186.207","cat":"transition","period":6,"group":7,"glabel":"ⅦB","row":6,"col":7,"block":"d","ox":"+7","state":"固态","mp":"3186 ℃","bp":"5596 ℃","density":"19.02 g/cm³","eneg":1.9,"config":"[Xe] 4f¹⁴ 5d⁵ 6s²","shells":[2,8,18,32,13,2],"notes":["稀有难熔金属，用于航空发动机高温合金。"],"uses":"航空合金、催化剂。","new":false},{"z":76,"sym":"Os","cn":"锇","en":"Osmium","mass":"190.23","cat":"transition","period":6,"group":8,"glabel":"Ⅷ","row":6,"col":8,"block":"d","ox":"+4, +8","state":"固态","mp":"3033 ℃","bp":"5012 ℃","density":"22.59 g/cm³","eneg":2.2,"config":"[Xe] 4f¹⁴ 5d⁶ 6s²","shells":[2,8,18,32,14,2],"notes":["密度最大的元素（约 22.6 g/cm³）。","OsO₄ 有毒，用于有机合成氧化。"],"uses":"高密度合金、笔尖、催化剂。","new":false},{"z":77,"sym":"Ir","cn":"铱","en":"Iridium","mass":"192.217","cat":"transition","period":6,"group":9,"glabel":"Ⅷ","row":6,"col":9,"block":"d","ox":"+3, +4","state":"固态","mp":"2446 ℃","bp":"4428 ℃","density":"22.56 g/cm³","eneg":2.2,"config":"[Xe] 4f¹⁴ 5d⁷ 6s²","shells":[2,8,18,32,15,2],"notes":["极耐腐蚀，用于火花塞、坩埚。","铱异常层与恐龙灭绝的陨石撞击假说相关。"],"uses":"火花塞、坩埚、催化剂。","new":false},{"z":78,"sym":"Pt","cn":"铂","en":"Platinum","mass":"195.084","cat":"transition","period":6,"group":10,"glabel":"Ⅷ","row":6,"col":10,"block":"d","ox":"+2, +4","state":"固态","mp":"1768 ℃","bp":"3825 ℃","density":"21.45 g/cm³","eneg":2.28,"config":"[Xe] 4f¹⁴ 5d⁹ 6s¹","shells":[2,8,18,32,17,1],"notes":["化学性质稳定，俗称白金。","铂是重要的催化剂（如汽车尾气、接触氧化）。","耐腐蚀，用于首饰、实验器皿。"],"uses":"催化剂、首饰、实验器皿、电极。","new":false},{"z":79,"sym":"Au","cn":"金","en":"Gold","mass":"196.967","cat":"transition","period":6,"group":11,"glabel":"ⅠB","row":6,"col":11,"block":"d","ox":"+3, +1","state":"固态","mp":"1064 ℃","bp":"2856 ℃","density":"19.32 g/cm³","eneg":2.54,"config":"[Xe] 4f¹⁴ 5d¹⁰ 6s¹","shells":[2,8,18,32,18,1],"notes":["化学性质极不活泼，不与一般酸反应，但溶于王水。","延展性最好的金属，可拉成极细金丝、压成极薄金箔。"],"uses":"首饰、电子接点、货币、镀金。","new":false},{"z":80,"sym":"Hg","cn":"汞","en":"Mercury","mass":"200.59","cat":"transition","period":6,"group":12,"glabel":"ⅡB","row":6,"col":12,"block":"d","ox":"+1, +2","state":"液态","mp":"-38.8 ℃","bp":"356.7 ℃","density":"13.59 g/cm³","eneg":2.0,"config":"[Xe] 4f¹⁴ 5d¹⁰ 6s²","shells":[2,8,18,32,18,2],"notes":["常温下唯一液态金属，俗称水银。","汞蒸气剧毒，需密封保存。","与硫反应生成 HgS（朱砂）。"],"uses":"温度计、气压计、荧光灯、化工。","new":false},{"z":81,"sym":"Tl","cn":"铊","en":"Thallium","mass":"204.38","cat":"posttrans","period":6,"group":13,"glabel":"ⅢA","row":6,"col":13,"block":"p","ox":"+1, +3","state":"固态","mp":"304 ℃","bp":"1473 ℃","density":"11.85 g/cm³","eneg":1.62,"config":"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹","shells":[2,8,18,32,18,3],"notes":["铊盐剧毒，曾用作灭鼠剂（已禁用）。"],"uses":"特种玻璃、电子、科研。","new":false},{"z":82,"sym":"Pb","cn":"铅","en":"Lead","mass":"207.2","cat":"posttrans","period":6,"group":14,"glabel":"ⅣA","row":6,"col":14,"block":"p","ox":"+2, +4","state":"固态","mp":"327.5 ℃","bp":"1749 ℃","density":"11.34 g/cm³","eneg":2.33,"config":"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²","shells":[2,8,18,32,18,4],"notes":["重金属，有毒，可损害神经系统。","铅蓄电池是重要的二次电池（Pb/PbO₂/H₂SO₄）。","可屏蔽 X 射线、γ 射线。"],"uses":"铅蓄电池、防辐射、合金、电缆护套。","new":false},{"z":83,"sym":"Bi","cn":"铋","en":"Bismuth","mass":"208.980","cat":"posttrans","period":6,"group":15,"glabel":"ⅤA","row":6,"col":15,"block":"p","ox":"+3, +5","state":"固态","mp":"271.4 ℃","bp":"1564 ℃","density":"9.78 g/cm³","eneg":2.02,"config":"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³","shells":[2,8,18,32,18,5],"notes":["低熔点合金（伍德合金）成分，用于保险丝。","铋晶体有彩虹色氧化膜。"],"uses":"低熔点合金、医药（铋剂）、颜料。","new":false},{"z":84,"sym":"Po","cn":"钋","en":"Polonium","mass":"[209]","cat":"metalloid","period":6,"group":16,"glabel":"ⅥA","row":6,"col":16,"block":"p","ox":"+2, +4","state":"固态","mp":"254 ℃","bp":"962 ℃","density":"9.32 g/cm³","eneg":2.0,"config":"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴","shells":[2,8,18,32,18,6],"notes":["强放射性，居里夫妇发现。","极毒。"],"uses":"科研、抗静电、热源。","new":false},{"z":85,"sym":"At","cn":"砹","en":"Astatine","mass":"[210]","cat":"halogen","period":6,"group":17,"glabel":"ⅦA","row":6,"col":17,"block":"p","ox":"-1, +1","state":"固态","mp":"302 ℃","bp":"337 ℃","density":"—","eneg":2.2,"config":"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵","shells":[2,8,18,32,18,7],"notes":["极稀有的放射性卤素，地壳中含量极低。"],"uses":"科研、核医学。","new":false},{"z":86,"sym":"Rn","cn":"氡","en":"Radon","mass":"[222]","cat":"noble","period":6,"group":18,"glabel":"0","row":6,"col":18,"block":"p","ox":"0","state":"气态","mp":"-71 ℃","bp":"-61.7 ℃","density":"—","eneg":"—","config":"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶","shells":[2,8,18,32,18,8],"notes":["放射性稀有气体，室内氡污染是肺癌诱因之一。","由镭衰变产生。"],"uses":"科研、放射性示踪、医疗。","new":false},{"z":87,"sym":"Fr","cn":"钫","en":"Francium","mass":"[223]","cat":"alkali","period":7,"group":1,"glabel":"ⅠA","row":7,"col":1,"block":"s","ox":"+1","state":"固态","mp":"27 ℃","bp":"677 ℃","density":"—","eneg":0.7,"config":"[Rn] 7s¹","shells":[2,8,18,32,18,8,1],"notes":["最不稳定的天然元素之一，半衰期约 22 分钟。","极活泼。"],"uses":"科研。","new":false},{"z":88,"sym":"Ra","cn":"镭","en":"Radium","mass":"[226]","cat":"alkaline","period":7,"group":2,"glabel":"ⅡA","row":7,"col":2,"block":"s","ox":"+2","state":"固态","mp":"700 ℃","bp":"1737 ℃","density":"—","eneg":0.9,"config":"[Rn] 7s²","shells":[2,8,18,32,18,8,2],"notes":["强放射性，居里夫人发现。","曾用于夜光涂料（已淘汰）。"],"uses":"科研、历史医学。","new":false},{"z":89,"sym":"Ac","cn":"锕","en":"Actinium","mass":"[227]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":3,"block":"f","ox":"+3","state":"固态","mp":"1050 ℃","bp":"3200 ℃","density":"—","eneg":1.1,"config":"[Rn] 6d¹ 7s²","shells":[2,8,18,32,18,9,2],"notes":["锕系元素之首，强放射性。","用于靶向核医学（锕-225）。"],"uses":"核医学、科研。","new":false},{"z":90,"sym":"Th","cn":"钍","en":"Thorium","mass":"232.038","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":4,"block":"f","ox":"+4","state":"固态","mp":"1750 ℃","bp":"4788 ℃","density":"—","eneg":1.3,"config":"[Rn] 6d² 7s²","shells":[2,8,18,32,18,10,2],"notes":["放射性，潜在的核燃料（钍基熔盐堆）。"],"uses":"核燃料研究、合金、高温材料。","new":false},{"z":91,"sym":"Pa","cn":"镤","en":"Protactinium","mass":"231.036","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":5,"block":"f","ox":"+5, +4","state":"固态","mp":"1572 ℃","bp":"4000 ℃","density":"—","eneg":1.5,"config":"[Rn] 5f² 6d¹ 7s²","shells":[2,8,18,32,20,9,2],"notes":["强放射性，铀衰变中间产物。"],"uses":"科研。","new":false},{"z":92,"sym":"U","cn":"铀","en":"Uranium","mass":"238.029","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":6,"block":"f","ox":"+6, +5, +4, +3","state":"固态","mp":"1132 ℃","bp":"4131 ℃","density":"—","eneg":1.38,"config":"[Rn] 5f³ 6d¹ 7s²","shells":[2,8,18,32,21,9,2],"notes":["重要的核燃料，铀-235 可发生链式裂变。","天然铀主要成分是铀-238。","铀化合物有放射性毒性。"],"uses":"核燃料、核武器、科研。","new":false},{"z":93,"sym":"Np","cn":"镎","en":"Neptunium","mass":"[237]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":7,"block":"f","ox":"+5, +4","state":"固态","mp":"644 ℃","bp":"3902 ℃","density":"—","eneg":1.36,"config":"[Rn] 5f⁴ 6d¹ 7s²","shells":[2,8,18,32,22,9,2],"notes":["第一个人工合成的超铀元素，放射性。"],"uses":"科研、核电池。","new":false},{"z":94,"sym":"Pu","cn":"钚","en":"Plutonium","mass":"[244]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":8,"block":"f","ox":"+4, +6, +5, +3","state":"固态","mp":"640 ℃","bp":"3228 ℃","density":"—","eneg":1.28,"config":"[Rn] 5f⁶ 7s²","shells":[2,8,18,32,24,8,2],"notes":["重要的核燃料与核武器材料，强放射性与化学毒性。","钚-238 用于核电池。"],"uses":"核能、核电池、科研。","new":false},{"z":95,"sym":"Am","cn":"镅","en":"Americium","mass":"[243]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":9,"block":"f","ox":"+3","state":"固态","mp":"1176 ℃","bp":"2607 ℃","density":"—","eneg":1.3,"config":"[Rn] 5f⁷ 7s²","shells":[2,8,18,32,25,8,2],"notes":["镅-241 用于离子式烟雾报警器。"],"uses":"烟雾报警器、科研。","new":false},{"z":96,"sym":"Cm","cn":"锔","en":"Curium","mass":"[247]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":10,"block":"f","ox":"+3","state":"固态","mp":"1340 ℃","bp":"3110 ℃","density":"—","eneg":1.3,"config":"[Rn] 5f⁷ 6d¹ 7s²","shells":[2,8,18,32,25,9,2],"notes":["人工合成放射性元素，以居里夫妇命名。"],"uses":"科研、核电池。","new":false},{"z":97,"sym":"Bk","cn":"锫","en":"Berkelium","mass":"[247]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":11,"block":"f","ox":"+3, +4","state":"固态","mp":"986 ℃","bp":"—","density":"—","eneg":1.3,"config":"[Rn] 5f⁹ 7s²","shells":[2,8,18,32,27,8,2],"notes":["人工合成放射性元素。"],"uses":"科研。","new":false},{"z":98,"sym":"Cf","cn":"锎","en":"Californium","mass":"[251]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":12,"block":"f","ox":"+3","state":"固态","mp":"900 ℃","bp":"—","density":"—","eneg":1.3,"config":"[Rn] 5f¹⁰ 7s²","shells":[2,8,18,32,28,8,2],"notes":["锎-252 是强中子源，用于癌症治疗、探测。"],"uses":"中子源、核医学、科研。","new":false},{"z":99,"sym":"Es","cn":"锿","en":"Einsteinium","mass":"[252]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":13,"block":"f","ox":"+3","state":"固态","mp":"860 ℃","bp":"—","density":"—","eneg":1.3,"config":"[Rn] 5f¹¹ 7s²","shells":[2,8,18,32,29,8,2],"notes":["人工合成放射性元素，以爱因斯坦命名。"],"uses":"科研。","new":false},{"z":100,"sym":"Fm","cn":"镄","en":"Fermium","mass":"[257]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":14,"block":"f","ox":"+3","state":"固态","mp":"1527 ℃","bp":"—","density":"—","eneg":1.3,"config":"[Rn] 5f¹² 7s²","shells":[2,8,18,32,30,8,2],"notes":["人工合成放射性元素，以费米命名。"],"uses":"科研。","new":false},{"z":101,"sym":"Md","cn":"钔","en":"Mendelevium","mass":"[258]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":15,"block":"f","ox":"+3, +2","state":"固态","mp":"827 ℃","bp":"—","density":"—","eneg":1.3,"config":"[Rn] 5f¹³ 7s²","shells":[2,8,18,32,31,8,2],"notes":["人工合成放射性元素，以门捷列夫命名。"],"uses":"科研。","new":false},{"z":102,"sym":"No","cn":"锘","en":"Nobelium","mass":"[259]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":16,"block":"f","ox":"+3, +2","state":"固态","mp":"827 ℃","bp":"—","density":"—","eneg":1.3,"config":"[Rn] 5f¹⁴ 7s²","shells":[2,8,18,32,32,8,2],"notes":["人工合成放射性元素，以诺贝尔命名。"],"uses":"科研。","new":false},{"z":103,"sym":"Lr","cn":"铹","en":"Lawrencium","mass":"[266]","cat":"actinide","period":7,"group":3,"glabel":"ⅢB","row":10,"col":17,"block":"f","ox":"+3","state":"固态","mp":"1627 ℃","bp":"—","density":"—","eneg":1.3,"config":"[Rn] 5f¹⁴ 6d¹ 7s²","shells":[2,8,18,32,32,9,2],"notes":["人工合成放射性元素，以劳伦斯命名。"],"uses":"科研。","new":false},{"z":104,"sym":"Rf","cn":"鑪","en":"Rutherfordium","mass":"[267]","cat":"transition","period":7,"group":4,"glabel":"ⅣB","row":7,"col":4,"block":"d","ox":"+4","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d² 7s²（预测）","shells":[2,8,18,32,32,10,2],"notes":["人工合成的超重元素，以卢瑟福命名。","半衰期极短，仅用于基础研究。"],"uses":"基础科研。","new":false},{"z":105,"sym":"Db","cn":"𬭊","en":"Dubnium","mass":"[268]","cat":"transition","period":7,"group":5,"glabel":"ⅤB","row":7,"col":5,"block":"d","ox":"+5","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d³ 7s²（预测）","shells":[2,8,18,32,32,11,2],"notes":["人工合成超重元素，以杜布纳研究所命名。"],"uses":"基础科研。","new":false},{"z":106,"sym":"Sg","cn":"𬭳","en":"Seaborgium","mass":"[269]","cat":"transition","period":7,"group":6,"glabel":"ⅥB","row":7,"col":6,"block":"d","ox":"+6","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d⁴ 7s²（预测）","shells":[2,8,18,32,32,12,2],"notes":["人工合成超重元素，以西博格命名。"],"uses":"基础科研。","new":false},{"z":107,"sym":"Bh","cn":"𬭛","en":"Bohrium","mass":"[270]","cat":"transition","period":7,"group":7,"glabel":"ⅦB","row":7,"col":7,"block":"d","ox":"+7","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d⁵ 7s²（预测）","shells":[2,8,18,32,32,13,2],"notes":["人工合成超重元素，以玻尔命名。"],"uses":"基础科研。","new":false},{"z":108,"sym":"Hs","cn":"𬭶","en":"Hassium","mass":"[269]","cat":"transition","period":7,"group":8,"glabel":"Ⅷ","row":7,"col":8,"block":"d","ox":"+8","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d⁶ 7s²（预测）","shells":[2,8,18,32,32,14,2],"notes":["人工合成超重元素，以德国黑森州命名。"],"uses":"基础科研。","new":false},{"z":109,"sym":"Mt","cn":"鿏","en":"Meitnerium","mass":"[278]","cat":"transition","period":7,"group":9,"glabel":"Ⅷ","row":7,"col":9,"block":"d","ox":"+3","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d⁷ 7s²（预测）","shells":[2,8,18,32,32,15,2],"notes":["人工合成超重元素，以迈特纳命名。"],"uses":"基础科研。","new":false},{"z":110,"sym":"Ds","cn":"𬭸","en":"Darmstadtium","mass":"[281]","cat":"transition","period":7,"group":10,"glabel":"Ⅷ","row":7,"col":10,"block":"d","ox":"+2","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d⁸ 7s²（预测）","shells":[2,8,18,32,32,16,2],"notes":["人工合成超重元素，以达姆施塔特命名。"],"uses":"基础科研。","new":false},{"z":111,"sym":"Rg","cn":"𬬭","en":"Roentgenium","mass":"[282]","cat":"transition","period":7,"group":11,"glabel":"ⅠB","row":7,"col":11,"block":"d","ox":"+3","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d⁹ 7s²（预测）","shells":[2,8,18,32,32,17,2],"notes":["人工合成超重元素，以伦琴命名。"],"uses":"基础科研。","new":false},{"z":112,"sym":"Cn","cn":"鿔","en":"Copernicium","mass":"[285]","cat":"transition","period":7,"group":12,"glabel":"ⅡB","row":7,"col":12,"block":"d","ox":"+2","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d¹⁰ 7s²（预测）","shells":[2,8,18,32,32,18,2],"notes":["人工合成超重元素，以哥白尼命名。"],"uses":"基础科研。","new":false},{"z":113,"sym":"Nh","cn":"鉨","en":"Nihonium","mass":"[286]","cat":"posttrans","period":7,"group":13,"glabel":"ⅢA","row":7,"col":13,"block":"p","ox":"+1, +3","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹（预测）","shells":[2,8,18,32,32,18,3],"notes":["2016 年正式命名（日本理化学研究所合成）。","最新确认的第 113 号元素，中文名“鉨”。"],"uses":"基础科研。","new":true},{"z":114,"sym":"Fl","cn":"鈇","en":"Flerovium","mass":"[289]","cat":"posttrans","period":7,"group":14,"glabel":"ⅣA","row":7,"col":14,"block":"p","ox":"+2","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²（预测）","shells":[2,8,18,32,32,18,4],"notes":["2016 年正式命名，以弗廖罗夫核反应实验室命名。","最新确认的第 114 号元素。"],"uses":"基础科研。","new":true},{"z":115,"sym":"Mc","cn":"镆","en":"Moscovium","mass":"[290]","cat":"posttrans","period":7,"group":15,"glabel":"ⅤA","row":7,"col":15,"block":"p","ox":"+1, +3","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³（预测）","shells":[2,8,18,32,32,18,5],"notes":["2016 年正式命名，以莫斯科命名。","最新确认的第 115 号元素。"],"uses":"基础科研。","new":true},{"z":116,"sym":"Lv","cn":"鉝","en":"Livermorium","mass":"[293]","cat":"posttrans","period":7,"group":16,"glabel":"ⅥA","row":7,"col":16,"block":"p","ox":"+2","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴（预测）","shells":[2,8,18,32,32,18,6],"notes":["2016 年正式命名，以利弗莫尔实验室命名。","最新确认的第 116 号元素。"],"uses":"基础科研。","new":true},{"z":117,"sym":"Ts","cn":"鿬","en":"Tennessine","mass":"[294]","cat":"halogen","period":7,"group":17,"glabel":"ⅦA","row":7,"col":17,"block":"p","ox":"-1, +1","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵（预测）","shells":[2,8,18,32,32,18,7],"notes":["2016 年正式命名，以美国田纳西州命名。","最新确认的第 117 号元素，属卤素。"],"uses":"基础科研。","new":true},{"z":118,"sym":"Og","cn":"鿫","en":"Oganesson","mass":"[294]","cat":"noble","period":7,"group":18,"glabel":"0","row":7,"col":18,"block":"p","ox":"0","state":"固态","mp":"—","bp":"—","density":"—","eneg":"—","config":"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶（预测）","shells":[2,8,18,32,32,18,8],"notes":["2016 年正式命名，以奥加涅相命名。","目前已知的最后一个元素，属稀有气体，理论性质特殊。"],"uses":"基础科研。","new":true}];
+const CATLABEL = {"alkali":"碱金属","alkaline":"碱土金属","transition":"过渡金属","posttrans":"其他金属","metalloid":"准金属","nonmetal":"非金属","halogen":"卤素","noble":"稀有气体","lanthanide":"镧系","actinide":"锕系"};
+const COLORS = {"alkali": "#ff6b81", "alkaline": "#ffa94d", "transition": "#4dabf7", "posttrans": "#20c997", "metalloid": "#9775fa", "nonmetal": "#51cf66", "halogen": "#fcc419", "noble": "#22b8cf", "lanthanide": "#e64980", "actinide": "#e8590c"};
+
+/* ===== 构建周期表 ===== */
+const pt = document.getElementById('pt');
+const legend = document.getElementById('legend');
+Object.entries(CATLABEL).forEach(([k,v])=>{
+  const c = document.createElement('span'); c.className='chip';
+  c.innerHTML = `<span class="dot" style="background:${COLORS[k]};color:${COLORS[k]}"></span>${v}`;
+  legend.appendChild(c);
+});
+
+ELEMENTS.forEach((el, i)=>{
+  const btn = document.createElement('button');
+  btn.className = 'cell';
+  btn.dataset.z = el.z;
+  btn.style.gridColumn = el.col;
+  btn.style.gridRow = el.row;
+  btn.style.setProperty('--c', COLORS[el.cat]);
+  btn.style.setProperty('--d', (i*14)+'ms');
+  btn.setAttribute('aria-label', `${el.z} ${el.cn} ${el.sym}`);
+  btn.innerHTML = `<span class="num">${el.z}</span><span class="sym">${el.sym}</span><span class="cn">${el.cn}${el.new?'<span class="newtag">新</span>':''}</span><span class="m">${el.mass}</span>`;
+  btn.addEventListener('click', ()=>openDetail(el.z));
+  pt.appendChild(btn);
+});
+
+/* 镧系/锕系占位 + 间隔 */
+const ph1 = document.createElement('div'); ph1.className='placeholder'; ph1.style.gridRow=6; ph1.textContent='57–71 镧系';
+const ph2 = document.createElement('div'); ph2.className='placeholder'; ph2.style.gridRow=7; ph2.textContent='89–103 锕系';
+const gap = document.createElement('div'); gap.className='fgap';
+pt.append(ph1, ph2, gap);
+document.getElementById('cnt').textContent = ELEMENTS.length;
+
+/* ===== 详情 ===== */
+const detail = document.getElementById('detail');
+const scrim = document.getElementById('scrim');
+const dBody = document.getElementById('dBody');
+const dAccent = document.getElementById('dAccent');
+let activeCell = null;
+
+function openDetail(z){
+  const el = ELEMENTS.find(e=>e.z===z);
+  if(!el) return;
+  const c = COLORS[el.cat];
+  detail.style.setProperty('--c', c);
+  dAccent.style.background = `linear-gradient(90deg,${c},transparent)`;
+  const newBadge = el.new ? `<span class="newtag">最新命名</span>` : '';
+  dBody.innerHTML = `
+    <div class="d-top">
+      <div class="d-sym">${el.sym}</div>
+      <div class="d-id">
+        <div class="d-cn">${el.cn} ${newBadge}</div>
+        <div class="d-en">${el.en}</div>
+        <div class="d-cat">${CATLABEL[el.cat]}</div>
+      </div>
+    </div>
+    <div class="d-sec">
+      <h3>基本信息</h3>
+      <div class="kv">
+        <div class="item"><div class="k">原子序数</div><div class="v">${el.z}</div></div>
+        <div class="item"><div class="k">相对原子质量</div><div class="v">${el.mass}</div></div>
+        <div class="item"><div class="k">周期 / 族</div><div class="v">第 ${el.period} 周期 · ${el.glabel}族</div></div>
+        <div class="item"><div class="k">元素分区</div><div class="v">${el.block} 区</div></div>
+        <div class="item"><div class="k">常见化合价</div><div class="v">${el.ox}</div></div>
+        <div class="item"><div class="k">常温状态</div><div class="v">${el.state}</div></div>
+      </div>
+    </div>
+    <div class="d-sec">
+      <h3>电子排布</h3>
+      <div class="config">${el.config}</div>
+      <div class="shell">${el.shells.map((n,i)=>`<span class="k">${'KLMNOPQ'[i]}</span><span class="s">${n}</span>`).join('')}</div>
+    </div>
+    <div class="d-sec">
+      <h3>物理性质</h3>
+      <div class="kv">
+        <div class="item"><div class="k">熔点</div><div class="v">${el.mp}</div></div>
+        <div class="item"><div class="k">沸点</div><div class="v">${el.bp}</div></div>
+        <div class="item"><div class="k">密度</div><div class="v">${el.density}</div></div>
+        <div class="item"><div class="k">电负性(Pauling)</div><div class="v">${el.eneg}</div></div>
+      </div>
+    </div>
+    <div class="d-sec">
+      <h3>高中化学要点</h3>
+      <ul class="notes">${el.notes.map(n=>`<li>${n}</li>`).join('')}</ul>
+    </div>
+    <div class="d-sec">
+      <h3>主要用途</h3>
+      <div class="uses">${el.uses}</div>
+    </div>`;
+  detail.classList.add('open');
+  detail.setAttribute('aria-hidden','false');
+  scrim.classList.add('show');
+  if(activeCell) activeCell.classList.remove('active');
+  activeCell = [...pt.querySelectorAll('.cell')].find(b=>+b.dataset.z===z);
+  if(activeCell) activeCell.classList.add('active');
+}
+
+function closeDetail(){
+  detail.classList.remove('open');
+  detail.setAttribute('aria-hidden','true');
+  scrim.classList.remove('show');
+  if(activeCell){activeCell.classList.remove('active');activeCell=null;}
+}
+document.getElementById('dClose').addEventListener('click', closeDetail);
+scrim.addEventListener('click', closeDetail);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDetail(); });
+
+/* ===== 星空 & 视差 ===== */
+const cv = document.getElementById('stars');
+const ctx = cv.getContext('2d');
+let W=0,H=0, stars=[], last=0;
+const DPR = Math.min(window.devicePixelRatio||1, 2);
+function resize(){
+  W = cv.width = Math.floor(innerWidth*DPR);
+  H = cv.height = Math.floor(innerHeight*DPR);
+  cv.style.width = innerWidth+'px'; cv.style.height = innerHeight+'px';
+  const n = Math.min(110, Math.floor(innerWidth/16));
+  stars = Array.from({length:n},()=>({
+    x:Math.random()*W, y:Math.random()*H,
+    r:(Math.random()*1.4+.3)*DPR,
+    v:(Math.random()*.28+.06)*DPR,
+    a:Math.random()*.5+.25,
+    ph:Math.random()*Math.PI*2
+  }));
+}
+addEventListener('resize', resize); resize();
+function frame(t){
+  requestAnimationFrame(frame);
+  if(document.hidden) return;
+  if(t-last < 33) return; // ~30fps 上限，降低壁纸占用
+  last = t;
+  ctx.clearRect(0,0,W,H);
+  for(const s of stars){
+    s.y -= s.v; if(s.y < -4){ s.y = H+4; s.x = Math.random()*W; }
+    const tw = .55 + .45*Math.sin(t/900 + s.ph);
+    ctx.beginPath();
+    ctx.globalAlpha = s.a*tw;
+    ctx.fillStyle = '#bcd2ff';
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+requestAnimationFrame(frame);
+
+const blobs = [...document.querySelectorAll('.blob')];
+let mx=0,my=0;
+addEventListener('mousemove', e=>{
+  mx = (e.clientX/innerWidth - .5);
+  my = (e.clientY/innerHeight - .5);
+});
+(function parallax(){
+  requestAnimationFrame(parallax);
+  blobs.forEach((b,i)=>{
+    const k = (i+1)*7;
+    b.style.marginLeft = (mx*k)+'px';
+    b.style.marginTop = (my*k)+'px';
+  });
+})();
+</script>
+</body>
+</html>
